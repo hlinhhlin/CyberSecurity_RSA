@@ -31,11 +31,12 @@ def save_database(database):
     with open(DATABASE_FILE, 'w') as file:
         json.dump(database, file, indent=4)
 
-def store_user(username, encrypted_password, public_key, encrypted_name, encrypted_surname, encrypted_address, encrypted_aes_key):
+def store_user(username, encrypted_password, public_key, public_key_encrypt_aes, encrypted_name, encrypted_surname, encrypted_address, encrypted_aes_key):
     database = load_database()
     database['users'][username] = {
         'password': encrypted_password,
         'public_key': public_key,
+        'public_key_for_aes': public_key_encrypt_aes,
         'aes_key': encrypted_aes_key,  # Store the AES key
         'name': [base64.b64encode(part).decode('utf-8') for part in encrypted_name],  # Convert each part to base64 string
         'surname': [base64.b64encode(part).decode('utf-8') for part in encrypted_surname],

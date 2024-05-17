@@ -33,15 +33,18 @@ def decrypt_rsa(private_key, ciphertext):
     plaintext = plaintext_bytes.decode('utf-8', errors='ignore')  # Ignore errors for non-textual data
     return plaintext
 
-# # Encrypt AES key with RSA public key
-# def encrypt_aes_key_with_rsa(aes_key, rsa_public_key):
-#     cipher_rsa = PKCS1_OAEP.new(RSA.import_key(rsa_public_key))
-#     encrypted_aes_key = cipher_rsa.encrypt(aes_key)
-#     return base64.b64encode(encrypted_aes_key).decode('utf-8')
+# Encrypt AES key with RSA public key
+def encrypt_aes_key_with_rsa(rsa_public_key, aes_key):
+    e, n = rsa_public_key
+    rsa_key = RSA.construct((n, e))
+    cipher_rsa = PKCS1_OAEP.new(rsa_key)
+    encrypted_aes_key = cipher_rsa.encrypt(aes_key)
+    return base64.b64encode(encrypted_aes_key).decode('utf-8')
 
-# # Decrypt AES key with RSA private key
-# def decrypt_aes_key_with_rsa(encrypted_aes_key, rsa_private_key):
-#     cipher_rsa = PKCS1_OAEP.new(RSA.import_key(rsa_private_key))
-#     decoded_encrypted_aes_key = base64.b64decode(encrypted_aes_key)
-#     aes_key = cipher_rsa.decrypt(decoded_encrypted_aes_key)
-#     return aes_key
+def decrypt_aes_key_with_rsa(rsa_private_key, encrypted_aes_key):
+    d, n = rsa_private_key
+    rsa_private_key_new = RSA.construct((n, d))  # Construct RSA private key
+    cipher_rsa = PKCS1_OAEP.new(rsa_private_key_new) # Create encryption/decryption object
+    decoded_encrypted_aes_key = base64.b64decode(encrypted_aes_key)
+    aes_key = cipher_rsa.decrypt(decoded_encrypted_aes_key) # Decrypt AES key using RSA private key
+    return aes_key
