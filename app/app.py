@@ -1,9 +1,11 @@
 import tkinter as tk
 from tkinter import messagebox
 from rsa_utils import generate_keypair, encrypt_rsa, decrypt_rsa
-from database_utils import store_user, retrieve_user
+from aes_utils import encrypt_aes, decrypt_aes, generate_aes_key
+from database_utils import store_user, retrieve_user, retrieve_additional_data
 import os
 from dotenv import load_dotenv
+import base64
 
 # Load environment variables from .env file
 load_dotenv()
@@ -27,7 +29,19 @@ class RSA_AES_App:
         self.signup_password = tk.Entry(self.signup_frame, width=50, show='*')
         self.signup_password.grid(row=1, column=1, padx=5, pady=5)
         
-        tk.Button(self.signup_frame, text="Sign Up", command=self.signup).grid(row=2, column=0, columnspan=2, pady=5)
+        tk.Label(self.signup_frame, text="Name:").grid(row=2, column=0, sticky="e")
+        self.signup_name = tk.Entry(self.signup_frame, width=50)
+        self.signup_name.grid(row=2, column=1, padx=5, pady=5)
+        
+        tk.Label(self.signup_frame, text="Surname:").grid(row=3, column=0, sticky="e")
+        self.signup_surname = tk.Entry(self.signup_frame, width=50)
+        self.signup_surname.grid(row=3, column=1, padx=5, pady=5)
+        
+        tk.Label(self.signup_frame, text="Address:").grid(row=4, column=0, sticky="e")
+        self.signup_address = tk.Entry(self.signup_frame, width=50)
+        self.signup_address.grid(row=4, column=1, padx=5, pady=5)
+        
+        tk.Button(self.signup_frame, text="Sign Up", command=self.signup).grid(row=5, column=0, columnspan=2, pady=5)
         
         # Sign In Section
         self.signin_frame = tk.LabelFrame(self.root, text="Sign In", padx=10, pady=10)
@@ -46,19 +60,44 @@ class RSA_AES_App:
     def signup(self):
         username = self.signup_username.get()
         password = self.signup_password.get()
+        name = self.signup_name.get()
+        surname = self.signup_surname.get()
+        address = self.signup_address.get()
         
         # Generate RSA key pair
         public_key, private_key = generate_keypair()
         
         # Encrypt password using RSA public key
         encrypted_password = encrypt_rsa(public_key, password)
+
+        # Generate AES key
+        aes_key = generate_aes_key()
         
-        # Store user data including public key
-        store_user(username, encrypted_password, public_key)
+        # Encrypt additional user data using AES
+        encrypted_name = encrypt_aes(aes_key, name)
+        encrypted_surname = encrypt_aes(aes_key, surname)
+        encrypted_address = encrypt_aes(aes_key, address)
+        
+        # # Generate RSA key pair
+        # public_key_encrypt_aes, private_key_encrypt_aes = generate_keypair()
+
+        # # Encrypt AES key with RSA public key
+        # encrypted_aes_key = encrypt_aes_key_with_rsa(public_key_encrypt_aes, aes_key)
+        # store_user(username, encrypted_password, public_key, encrypted_name, encrypted_surname, encrypted_address, encrypted_aes_key)
+
+
+        # Encode the AES key to store it securely
+        encoded_aes_key = base64.b64encode(aes_key).decode('utf-8')
+
+        # Store user data including public key and encrypted additional data
+        store_user(username, encrypted_password, public_key, encrypted_name, encrypted_surname, encrypted_address, encoded_aes_key)
         
         # Save private key components to environment variables
         os.environ['PRIVATE_KEY_D'] = str(private_key[0])  # private_key[0] is d
         os.environ['PRIVATE_KEY_N'] = str(private_key[1])  # private_key[1] is n
+
+        # os.environ['PRIVATE_KEY_D_FOR_AES'] = str(private_key_encrypt_aes[0])  # private_key[0] is d
+        # os.environ['PRIVATE_KEY_N_FOR_AES'] = str(private_key_encrypt_aes[1])  # private_key[1] is n
         
         # Append private key components to .env file
         with open('.env', 'a') as env_file:
@@ -68,17 +107,23 @@ class RSA_AES_App:
         messagebox.showinfo("Success", "User signed up successfully!")
         self.signup_username.delete(0, tk.END)
         self.signup_password.delete(0, tk.END)
+        self.signup_name.delete(0, tk.END)
+        self.signup_surname.delete(0, tk.END)
+        self.signup_address.delete(0, tk.END)
     
     def signin(self):
         username = self.signin_username.get()
         password = self.signin_password.get()
         
-        # Retrieve encrypted password and public key from database
-        encrypted_password, public_key = retrieve_user(username)
+        # Retrieve encrypted password, public key, and AES key from database
+        encrypted_password, public_key, encoded_aes_key = retrieve_user(username)
         
-        if encrypted_password is None or public_key is None:
+        if encrypted_password is None or public_key is None or encoded_aes_key is None:
             messagebox.showerror("Error", "User not found or data incomplete!")
             return
+        
+        # Decode the AES key
+        aes_key = base64.b64decode(encoded_aes_key)
         
         # Retrieve private key for the user from environment variables or secure storage
         private_key_d = int(os.getenv('PRIVATE_KEY_D', -1))
@@ -93,12 +138,53 @@ class RSA_AES_App:
         decrypted_password = decrypt_rsa(private_key, int(encrypted_password))
         
         if password == decrypted_password:
+            # Retrieve additional user data
+            encrypted_name, encrypted_surname, encrypted_address = retrieve_additional_data(username)
+
+            # Unpack nonce, ciphertext, and tag
+            nonce_name, ciphertext_name, tag_name = encrypted_name
+            nonce_surname, ciphertext_surname, tag_surname = encrypted_surname
+            nonce_address, ciphertext_address, tag_address = encrypted_address
+            
+            decoded_nonce_name = base64.b64decode(nonce_name)
+            decoded_nonce_surname = base64.b64decode(nonce_surname)
+            decoded_nonce_address = base64.b64decode(nonce_address)
+
+            # Convert encoded ciphertext and tag to bytes
+            ciphertext_bytes_name = base64.b64decode(ciphertext_name)
+            tag_bytes_name = base64.b64decode(tag_name)
+            ciphertext_bytes_surname = base64.b64decode(ciphertext_surname)
+            tag_bytes_surname = base64.b64decode(tag_surname)
+            ciphertext_bytes_address = base64.b64decode(ciphertext_address)
+            tag_bytes_address = base64.b64decode(tag_address)
+
+            # Decrypt data using AES
+            name = decrypt_aes(aes_key, decoded_nonce_name, ciphertext_bytes_name, tag_bytes_name)
+            surname = decrypt_aes(aes_key, decoded_nonce_surname, ciphertext_bytes_surname, tag_bytes_surname)
+            address = decrypt_aes(aes_key, decoded_nonce_address, ciphertext_bytes_address, tag_bytes_address)
+
+            # Create a new window to display user data
+            self.display_user_data_window(name, surname, address)
+
             messagebox.showinfo("Success", "User signed in successfully!")
         else:
             messagebox.showerror("Error", "Incorrect password!")
+
+    def display_user_data_window(self, name, surname, address):
+        # Create a new window
+        user_data_window = tk.Toplevel(self.root)
+        user_data_window.title("User Data")
         
-        self.signin_username.delete(0, tk.END)
-        self.signin_password.delete(0, tk.END)
+        # Display user data in labels
+        tk.Label(user_data_window, text="Name:").grid(row=0, column=0, sticky="e")
+        tk.Label(user_data_window, text=name).grid(row=0, column=1, sticky="w")
+        
+        tk.Label(user_data_window, text="Surname:").grid(row=1, column=0, sticky="e")
+        tk.Label(user_data_window, text=surname).grid(row=1, column=1, sticky="w")
+        
+        tk.Label(user_data_window, text="Address:").grid(row=2, column=0, sticky="e")
+        tk.Label(user_data_window, text=address).grid(row=2, column=1, sticky="w")
+
 
 if __name__ == "__main__":
     root = tk.Tk()
