@@ -76,6 +76,10 @@ class RSA_AES_App:
         email = self.signup_email.get()
         tel = self.signup_tel.get()
         
+        if not all([username, password, name, surname, address, email, tel]):
+            messagebox.showwarning("Warning", "Please fill in all fields.")
+            return
+    
         # Generate RSA key pair
         public_key, private_key = generate_keypair()
         
