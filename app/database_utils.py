@@ -56,6 +56,6 @@ def retrieve_additional_data(username):
     user_data = database['users'].get(username)
     if user_data:
         return user_data.get('name'), user_data.get('surname'), user_data.get('address'), user_data.get('email'), user_data.get('tel')
-    return None, None, None  # Return None if user not found or missing data
+    return None, None, None, None, None  # Return None if user not found or missing data
 
 
