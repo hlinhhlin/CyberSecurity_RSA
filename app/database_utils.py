@@ -49,7 +49,7 @@ def retrieve_user(username):
     user_data = database['users'].get(username)
     if user_data:
         return user_data.get('password'), user_data.get('public_key')
-    return None, None, None  # Return None if user not found or missing data
+    return None, None  # Return None if user not found or missing data
 
 def retrieve_additional_data(username):
     database = load_database()
