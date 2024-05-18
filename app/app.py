@@ -90,11 +90,13 @@ class RSA_AES_App:
         encoded_aes_key = base64.b64encode(aes_key).decode('utf-8')
 
         # Store user data including public key and encrypted additional data
-        store_user(username, encrypted_password, public_key, encrypted_name, encrypted_surname, encrypted_address, encoded_aes_key)
+        store_user(username, encrypted_password, public_key, encrypted_name, encrypted_surname, encrypted_address)
         
         # Save private key components to environment variables
         os.environ['PRIVATE_KEY_D'] = str(private_key[0])  # private_key[0] is d
         os.environ['PRIVATE_KEY_N'] = str(private_key[1])  # private_key[1] is n
+        os.environ['AES_KEY'] = encoded_aes_key  # private_key[1] is n
+
 
         # os.environ['PRIVATE_KEY_D_FOR_AES'] = str(private_key_encrypt_aes[0])  # private_key[0] is d
         # os.environ['PRIVATE_KEY_N_FOR_AES'] = str(private_key_encrypt_aes[1])  # private_key[1] is n
@@ -103,6 +105,7 @@ class RSA_AES_App:
         with open('.env', 'a') as env_file:
             env_file.write(f"\nPRIVATE_KEY_D={private_key[0]}\n")
             env_file.write(f"PRIVATE_KEY_N={private_key[1]}\n")
+            env_file.write(f"AES_KEY={encoded_aes_key}\n")
         
         messagebox.showinfo("Success", "User signed up successfully!")
         self.signup_username.delete(0, tk.END)
@@ -116,22 +119,28 @@ class RSA_AES_App:
         password = self.signin_password.get()
         
         # Retrieve encrypted password, public key, and AES key from database
-        encrypted_password, public_key, encoded_aes_key = retrieve_user(username)
+        encrypted_password, public_key = retrieve_user(username)
         
-        if encrypted_password is None or public_key is None or encoded_aes_key is None:
+        if encrypted_password is None or public_key is None:
             messagebox.showerror("Error", "User not found or data incomplete!")
             return
-        
-        # Decode the AES key
-        aes_key = base64.b64decode(encoded_aes_key)
         
         # Retrieve private key for the user from environment variables or secure storage
         private_key_d = int(os.getenv('PRIVATE_KEY_D', -1))
         private_key_n = int(os.getenv('PRIVATE_KEY_N', -1))
+        encoded_aes_key = os.getenv('AES_KEY', -1)
+
         
         if private_key_d == -1 or private_key_n == -1:
             messagebox.showerror("Error", "Private key not found!")
             return
+        
+        if encoded_aes_key == -1:
+            messagebox.showerror("Error", "Private key not found!")
+            return
+
+        # Decode the AES key
+        aes_key = base64.b64decode(encoded_aes_key)
         
         # Decrypt the encrypted password using RSA private key (d, n)
         private_key = (private_key_d, private_key_n)
