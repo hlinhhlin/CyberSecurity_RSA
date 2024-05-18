@@ -184,15 +184,24 @@ class RSA_AES_App:
         user_data_window = tk.Toplevel(self.root)
         user_data_window.title("User Data")
         
-        # Display user data in labels
-        tk.Label(user_data_window, text="Name:").grid(row=0, column=0, sticky="e")
-        tk.Label(user_data_window, text=name).grid(row=0, column=1, sticky="w")
+        # Set minimum size for the window
+        user_data_window.minsize(400, 300)  # Adjust these values as needed
         
-        tk.Label(user_data_window, text="Surname:").grid(row=1, column=0, sticky="e")
-        tk.Label(user_data_window, text=surname).grid(row=1, column=1, sticky="w")
+        # Create a larger font
+        large_font = ('Helvetica', 16)
         
-        tk.Label(user_data_window, text="Address:").grid(row=2, column=0, sticky="e")
-        tk.Label(user_data_window, text=address).grid(row=2, column=1, sticky="w")
+        # Set padding
+        padding = 10
+        
+        # Display user data in labels with larger font and padding
+        tk.Label(user_data_window, text="Name:", font=large_font).grid(row=0, column=0, sticky="e", padx=padding, pady=padding)
+        tk.Label(user_data_window, text=name, font=large_font).grid(row=0, column=1, sticky="w", padx=padding, pady=padding)
+        
+        tk.Label(user_data_window, text="Surname:", font=large_font).grid(row=1, column=0, sticky="e", padx=padding, pady=padding)
+        tk.Label(user_data_window, text=surname, font=large_font).grid(row=1, column=1, sticky="w", padx=padding, pady=padding)
+        
+        tk.Label(user_data_window, text="Address:", font=large_font).grid(row=2, column=0, sticky="e", padx=padding, pady=padding)
+        tk.Label(user_data_window, text=address, font=large_font).grid(row=2, column=1, sticky="w", padx=padding, pady=padding)
 
 
 if __name__ == "__main__":
