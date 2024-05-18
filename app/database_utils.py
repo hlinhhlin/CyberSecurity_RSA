@@ -1,35 +1,27 @@
 #database_utils.py
 import json
 import os
-import base64 
+import base64
 
 DATABASE_FILE = 'user_data.json'
 
 def load_database():
     if not os.path.exists(DATABASE_FILE):
-        return {'users': {}}
-    with open(DATABASE_FILE, 'r') as file:
-        return json.load(file)
+        return {'users': {}, 'dh_parameters': {}, 'dh_public_keys': {}}  # Add a new key for storing DH public keys
+    try:
+        with open(DATABASE_FILE, 'r') as file:
+            return json.load(file)
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+        return None
+    except Exception as e:
+        print(f"Error loading database: {e}")
+        return None
+
 
 def save_database(database):
     with open(DATABASE_FILE, 'w') as file:
         json.dump(database, file)
-
-import base64
-import json
-import os
-
-DATABASE_FILE = 'database.json'
-
-def load_database():
-    if os.path.exists(DATABASE_FILE):
-        with open(DATABASE_FILE, 'r') as file:
-            return json.load(file)
-    return {'users': {}}
-
-def save_database(database):
-    with open(DATABASE_FILE, 'w') as file:
-        json.dump(database, file, indent=4)
 
 def store_user(username, encrypted_password, public_key, encrypted_name, encrypted_surname, encrypted_address, encrypted_aes_key):
     database = load_database()
@@ -56,5 +48,3 @@ def retrieve_additional_data(username):
     if user_data:
         return user_data.get('name'), user_data.get('surname'), user_data.get('address')
     return None, None, None  # Return None if user not found or missing data
-
-

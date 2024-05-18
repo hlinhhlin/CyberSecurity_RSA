@@ -6,6 +6,12 @@ from database_utils import store_user, retrieve_user, retrieve_additional_data
 import os
 from dotenv import load_dotenv
 import base64
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import dh
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
+from dh_utils import generate_dh_parameters, store_dh_parameters, retrieve_other_dh_public_key, store_dh_public_key
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -57,6 +63,7 @@ class RSA_AES_App:
         
         tk.Button(self.signin_frame, text="Sign In", command=self.signin).grid(row=2, column=0, columnspan=2, pady=5)
 
+
     def signup(self):
         username = self.signup_username.get()
         password = self.signup_password.get()
@@ -64,7 +71,8 @@ class RSA_AES_App:
         surname = self.signup_surname.get()
         address = self.signup_address.get()
         
-        # Generate RSA key pair
+
+         # Generate RSA key pair
         public_key, private_key = generate_keypair()
         
         # Encrypt password using RSA public key
@@ -78,13 +86,34 @@ class RSA_AES_App:
         encrypted_surname = encrypt_aes(aes_key, surname)
         encrypted_address = encrypt_aes(aes_key, address)
         
-        # # Generate RSA key pair
-        # public_key_encrypt_aes, private_key_encrypt_aes = generate_keypair()
+        # Generate DH parameters
+        dh_parameters = generate_dh_parameters()
+        
+        # Store DH parameters in the database
+        store_dh_parameters(username, dh_parameters)
 
-        # # Encrypt AES key with RSA public key
-        # encrypted_aes_key = encrypt_aes_key_with_rsa(public_key_encrypt_aes, aes_key)
-        # store_user(username, encrypted_password, public_key, encrypted_name, encrypted_surname, encrypted_address, encrypted_aes_key)
+        # Exchange DH public keys
+        other_dh_public_key_bytes = retrieve_other_dh_public_key(username)
+        
+        if other_dh_public_key_bytes is None:
+            messagebox.showerror("Error", "Other DH public key not found!")
+            return
 
+        other_dh_public_key = load_pem_public_key(other_dh_public_key_bytes, backend=default_backend())
+
+        # Generate DH private key
+        private_key = dh.generate_private_key(dh_parameters, default_backend())
+        public_key = private_key.public_key()
+
+        # Exchange DH public key with the other party
+        other_dh_public_key_bytes = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        store_dh_public_key(username, other_dh_public_key_bytes)
+
+        # Derive shared secret
+        shared_secret = private_key.exchange(other_dh_public_key)
 
         # Encode the AES key to store it securely
         encoded_aes_key = base64.b64encode(aes_key).decode('utf-8')

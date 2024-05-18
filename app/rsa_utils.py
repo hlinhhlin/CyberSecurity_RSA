@@ -4,6 +4,8 @@ import random
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 import base64
+from cryptography.hazmat.primitives.asymmetric import dh
+from cryptography.hazmat.backends import default_backend
 
 #generate key pair
 def generate_keypair(bits=2048):
