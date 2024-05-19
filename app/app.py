@@ -136,19 +136,10 @@ class RSA_AES_App:
         # Retrieve private key for the user from environment variables or secure storage
         private_key_d = int(os.getenv('PRIVATE_KEY_D', -1))
         private_key_n = int(os.getenv('PRIVATE_KEY_N', -1))
-        encoded_aes_key = os.getenv('AES_KEY', -1)
 
-        
         if private_key_d == -1 or private_key_n == -1:
             messagebox.showerror("Error", "Private key not found!")
             return
-        
-        if encoded_aes_key == -1:
-            messagebox.showerror("Error", "AES key not found!")
-            return
-
-        # Decode the AES key
-        aes_key = base64.b64decode(encoded_aes_key)
         
         # Decrypt the encrypted password using RSA private key (d, n)
         private_key = (private_key_d, private_key_n)
@@ -158,6 +149,15 @@ class RSA_AES_App:
             # Retrieve additional user data
             encrypted_name, encrypted_surname, encrypted_address, encrypted_email, encrypted_tel = retrieve_additional_data(username)
 
+            encoded_aes_key = os.getenv('AES_KEY', -1)
+
+            if encoded_aes_key == -1:
+                messagebox.showerror("Error", "AES key not found!")
+                return
+
+            # Decode the AES key
+            aes_key = base64.b64decode(encoded_aes_key)
+            
             # Unpack nonce, ciphertext, and tag
             nonce_name, ciphertext_name, tag_name = encrypted_name
             nonce_surname, ciphertext_surname, tag_surname = encrypted_surname
@@ -226,8 +226,6 @@ class RSA_AES_App:
 
         tk.Label(user_data_window, text="Telephone:", font=large_font).grid(row=4, column=0, sticky="e", padx=padding, pady=padding)
         tk.Label(user_data_window, text=tel, font=large_font).grid(row=4, column=1, sticky="w", padx=padding, pady=padding)
-
-
 
 if __name__ == "__main__":
     root = tk.Tk()
