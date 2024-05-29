@@ -4,7 +4,9 @@ AESpaAdmission System is a secure admission software designed to protect applica
 
 Project Summary
   This project implements a secure admission system using a combination of RSA and AES encryption algorithms. The primary goal is to ensure secure storage and transmission of applicant credentials and personal data during the registration and login processes. The system is built using Python, leveraging various cryptographic functions for key generation, encryption, and decryption to maintain data confidentiality and integrity.
+  
   • Cryptographic requirements:
+  
   – Implemented RSA Algorithms
   * Key Generation: RSA key pairs are generated with a default size of 2048 bits, providing strong security for encryption and decryption processes.
   * Encryption/Description Algorithms:
@@ -15,6 +17,7 @@ Project Summary
   * Performance: AES encryption and decryption are efficient for the small sized data typical in user credentials and personal information storage.
 
   • Application Requirements:
+  
   – Useof RSAandAESfor Security Services:
   * Authentication: RSA encryption is used to encrypt and securely store user passwords. During the login process, the stored encrypted password is decrypted and compared with the provided password to authenticate the user.
   * Confidentiality: AES encryption ensures the confidentiality of personal information. The AES key used for encryption is securely generated and stored.
