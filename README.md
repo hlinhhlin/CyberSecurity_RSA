@@ -11,6 +11,7 @@ Project Summary
   * Key Generation: RSA key pairs are generated with a default size of 2048 bits, providing strong security for encryption and decryption processes.
   * Encryption/Description Algorithms:
    · Data: RSA is used to encrypt user passwords during the signup process. The encrypted passwords are stored securely in the database.
+  
   – Implemented AES Algorithms:
   * Symmetric Encryption Algorithms: AES (Advanced Encryption Standard) is used for encrypting personal information such as name, surname, address, email, and telephone number. The AES key size is 128 bits (16 bytes), and encryption is performed using AES in EAX mode to provide both confidentiality and authentication.
   * DataHandling: The system encrypts personal information during the signup process and decrypts it during the login process to display the user’s data.
@@ -21,5 +22,6 @@ Project Summary
   – Useof RSAandAESfor Security Services:
   * Authentication: RSA encryption is used to encrypt and securely store user passwords. During the login process, the stored encrypted password is decrypted and compared with the provided password to authenticate the user.
   * Confidentiality: AES encryption ensures the confidentiality of personal information. The AES key used for encryption is securely generated and stored.
+  
   – Data Storage:
   * Thesystem handles textual data input through a GUI. It encrypts the user’s password and personal information during the registration process and decrypts it during the login process
