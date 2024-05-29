@@ -1,2 +1,3 @@
 # CyberSecurity_RSA
- 
+
+AESpaAdmission System is a secure admission software designed to protect applicant data through advanced cryptographic techniques. The system ensures secure registration and login by employing 2048-bit RSA encryption for passwords and 128-bit AES encryption for personal information such as names, surnames, addresses, emails, and telephone numbers. Each user’s RSA and AES keys are securely generated and managed, with sensitive key storage handled through environment variables. Encrypted user data is stored in a JSON file. The system features a user-friendly GUI built with Tkinter, enabling easy registration and login while ensuring data confidentiality, integrity, and secure user interactions. Performance optimization and robust error handling are integrated to maintain security and efficiency. The implementation leverages Python for cryptographic operations, ensuring secure storage and transmission of applicant credentials and personal data
